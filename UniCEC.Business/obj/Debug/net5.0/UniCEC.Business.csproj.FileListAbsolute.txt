@@ -1,0 +1,15 @@
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\bin\Debug\net5.0\UniCEC.Business.deps.json
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\bin\Debug\net5.0\UniCEC.Business.dll
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\bin\Debug\net5.0\UniCEC.Business.pdb
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\bin\Debug\net5.0\UniCEC.Data.dll
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\bin\Debug\net5.0\UniCEC.Data.pdb
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.csproj.AssemblyReference.cache
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.AssemblyInfoInputs.cache
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.AssemblyInfo.cs
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.csproj.CoreCompileInputs.cache
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.csproj.CopyComplete
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.dll
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\refint\UniCEC.Business.dll
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\UniCEC.Business.pdb
+C:\Users\ThanhHT\Documents\GitHub\UniClub_BE\UniCEC.Business\obj\Debug\net5.0\ref\UniCEC.Business.dll
