@@ -76,17 +76,19 @@ using UniCEC.Data.Repository.ImplRepo.TeamRepo;
 using UniCEC.Data.Repository.ImplRepo.TeamRoleRepo;
 using UniCEC.Data.Repository.ImplRepo.UniversityRepo;
 using UniCEC.Data.Repository.ImplRepo.UserRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace UniCEC.API
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -107,7 +109,7 @@ namespace UniCEC.API
 
             // DI - Dependency Injection
             // Add DbContext
-            services.AddDbContext<UniCECContext>();
+            services.AddDbContext<UniCECContext>(options => options.UseSqlServer(Configuration.GetConnectionString("UniCEC")));
             // Service
             services.AddScoped<IActivitiesEntityService, ActivitiesEntityService>();
             services.AddScoped<ICityService, CityService>();
@@ -189,7 +191,7 @@ namespace UniCEC.API
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt =>
             {
-                //opt.Authority = Configuration["Jwt:Firebase:ValidIssuer"];
+                opt.Authority = Configuration["Jwt:Firebase:ValidIssuer"];
                 opt.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -202,6 +204,7 @@ namespace UniCEC.API
                 };
             });
             //enable CORS
+            //services.AddDbContextPool<UniCECContext>(options => options.UseSqlServer(Configuration.GetConnectionString("UniCEC")));
             services.AddCors(opt =>
             {
                 opt.AddPolicy("AllowOrigin",

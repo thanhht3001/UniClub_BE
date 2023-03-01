@@ -16,8 +16,8 @@ namespace UniCEC.Data.JWT
             if (user.RoleId.Equals(1) || user.RoleId.Equals(3) && user.UniversityId != 0) // University Admin || student in university
             {
                 tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //Id
                  new Claim("Id", user.Id.ToString()),
@@ -42,8 +42,8 @@ namespace UniCEC.Data.JWT
             else if (user.RoleId.Equals(4) || user.RoleId.Equals(3) && user.UniversityId == 0) // System Admin || new student
             {
                 tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //Id
                  new Claim("Id", user.Id.ToString()),
@@ -71,8 +71,8 @@ namespace UniCEC.Data.JWT
         public static string GenerateJWTTokenUserTemp(UserTokenModel user)
         {
             JwtSecurityToken tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //Id
                  new Claim("Id", user.Id.ToString()),
@@ -97,8 +97,8 @@ namespace UniCEC.Data.JWT
         public static string GenerateJWTTokenStudent(ViewUser user, string roleName)
         {
             JwtSecurityToken tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //---------- STUDENT INFOMATION
                  //Id
@@ -126,8 +126,8 @@ namespace UniCEC.Data.JWT
         public static string GenerateJWTTokenSponsor(ViewUser user, string roleName, string sponsorId)
         {
             JwtSecurityToken tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //Id
                  new Claim("Id", user.Id.ToString()),
@@ -155,8 +155,8 @@ namespace UniCEC.Data.JWT
         public static string GenerateJWTTokenUniversityAdmin(ViewUser user, string roleName)
         {
             JwtSecurityToken tokenUser = new JwtSecurityToken(
-                issuer: "https://securetoken.google.com/unics-e46a4",
-                audience: "unics-e46a4",
+                issuer: "https://securetoken.google.com/uniclubproject",
+                audience: "uniclubproject",
                 claims: new[] {
                  //Id
                  new Claim("Id", user.Id.ToString()),
