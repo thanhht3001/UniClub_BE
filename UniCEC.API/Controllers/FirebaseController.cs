@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Firebase.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
 using UniCEC.Business.Services.FirebaseSvc;
+using UniCEC.Data.ViewModels.Entities.User;
 using UniCEC.Data.ViewModels.Firebase.Auth;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -30,7 +33,7 @@ namespace UniCEC.API.Controllers
             {
                 //Get The IDToken From FE
                 var header = Request.Headers;
-                if (!header.ContainsKey("Authorization")) return BadRequest();                
+                if (!header.ContainsKey("Authorization")) return BadRequest();
 
                 string token = header["Authorization"].ToString().Split(" ")[1];
                 string deviceId = (Request.Headers)["X-Device-Token"].ToString();
@@ -46,6 +49,21 @@ namespace UniCEC.API.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        //[HttpPost("firebaseToken")]
+        //[SwaggerOperation(Summary = "Get firebase token")]
+        //public async Task<IActionResult> GetFirebaseToken([FromBody] UserLoginModel model)
+        //{
+        //    try
+        //    {
+        //        FirebaseAuthLink firebaseAuthLink = await _firebaseService.GetFirebaseToken(model);
+        //        return firebaseAuthLink == null ? BadRequest() : Ok(firebaseAuthLink);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
     }
 
 

@@ -14,6 +14,7 @@ using UniCEC.Data.ViewModels.Entities.Role;
 using UniCEC.Data.ViewModels.Entities.University;
 using UniCEC.Data.ViewModels.Entities.User;
 using UniCEC.Data.ViewModels.Firebase.Auth;
+using Microsoft.Extensions.Configuration;
 
 namespace UniCEC.Business.Services.FirebaseSvc
 {
@@ -24,16 +25,18 @@ namespace UniCEC.Business.Services.FirebaseSvc
         private IRoleService _roleService;
         private ISeedsWalletService _seedsWalletService;
         private INotificationService _notificationService;
+        private IConfiguration _configuration;
 
         public FirebaseService(IUserService userService, IUniversityService universityService
                                 , IRoleService roleService, ISeedsWalletService seedsWalletService
-                                , INotificationService notificationService)
+                                , INotificationService notificationService, IConfiguration configuration)
         {
             _userService = userService;
             _universityService = universityService;
             _roleService = roleService;
             _seedsWalletService = seedsWalletService;
             _notificationService = notificationService;
+            _configuration = configuration;
         }
 
         public async Task<ViewUserInfo> Authentication(string token, string deviceToken)
@@ -137,6 +140,24 @@ namespace UniCEC.Business.Services.FirebaseSvc
 
             // NOT IN SYSTEM && INVALID EMAIL
             return null;
+        }
+
+        public async Task<Firebase.Auth.FirebaseAuthLink> GetFirebaseToken(UserLoginModel model)
+        {
+            try
+            {
+                var auth = new Firebase.Auth.FirebaseAuthProvider(new Firebase.Auth.FirebaseConfig(_configuration.GetSection("Firebase:ApiKey").Value));
+                Firebase.Auth.FirebaseAuthLink firebaseAuthLink = await auth.SignInWithEmailAndPasswordAsync(model.Email, model.Password);
+                if (firebaseAuthLink != null)
+                {
+                    return firebaseAuthLink;
+                }
+                return null;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
     }
 }
