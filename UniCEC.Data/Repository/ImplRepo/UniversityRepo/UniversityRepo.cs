@@ -145,8 +145,8 @@ namespace UniCEC.Data.Repository.ImplRepo.UniversityRepo
             //Paging
             count = query.Count();
 
-            List<University> listUni = await query.Skip((request.CurrentPage - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
-
+            List<University> listUni = await query.Include(c => c.City).Skip((request.CurrentPage - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
+            
             //return view
             listUni.ForEach(u =>
             {
@@ -177,7 +177,7 @@ namespace UniCEC.Data.Repository.ImplRepo.UniversityRepo
 
                         select u;
 
-            List<University> universities = await query.ToListAsync();
+            List<University> universities = await query.Include(c => c.City).ToListAsync();
             List<ViewUniversity> viewUniversities = new List<ViewUniversity>();
             //return view
             universities.ForEach(u =>
