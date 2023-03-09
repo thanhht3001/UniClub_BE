@@ -1,2 +1,4 @@
 # UniClub_BE
-https://main--jazzy-donut-e0c528.netlify.app/
+BE: https://uniclubbe.azurewebsites.net
+
+FE: https://main--jazzy-donut-e0c528.netlify.app/
