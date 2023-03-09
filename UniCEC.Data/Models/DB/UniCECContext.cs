@@ -53,6 +53,7 @@ namespace UniCEC.Data.Models.DB
         public virtual DbSet<TeamRole> TeamRoles { get; set; }
         public virtual DbSet<University> Universities { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Event>? Events { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

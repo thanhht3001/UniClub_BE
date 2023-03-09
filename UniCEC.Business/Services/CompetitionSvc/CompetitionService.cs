@@ -1,6 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Castle.Core.Resource;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UniCEC.Business.Services.FileSvc;
 using UniCEC.Business.Services.NotificationSvc;
@@ -33,6 +39,7 @@ using UniCEC.Data.ViewModels.Entities.CompetitionEntity;
 using UniCEC.Data.ViewModels.Entities.CompetitionInClub;
 using UniCEC.Data.ViewModels.Entities.CompetitionInMajor;
 using UniCEC.Data.ViewModels.Entities.MemberInCompetition;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace UniCEC.Business.Services.CompetitionSvc
 {
@@ -59,6 +66,9 @@ namespace UniCEC.Business.Services.CompetitionSvc
         private ISeedsWalletService _seedsWalletService;
         private IUniversityRepo _universityRepo;
         private INotificationService _notificationService;
+        private readonly IDistributedCache _distributedCache;
+        //private static readonly object _lockObj = new();
+        static readonly ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("redis-12075.c252.ap-southeast-1-1.ec2.cloud.redislabs.com:12075,password=SJQhDtg2pAHPguJwpxll2BbiLioTiyfG");
 
         public CompetitionService(ICompetitionRepo competitionRepo,
                                   IMemberRepo memberRepo,
@@ -79,7 +89,8 @@ namespace UniCEC.Business.Services.CompetitionSvc
                                   ISeedsWalletService seedsWalletService,
                                   IUniversityRepo universityRepo,
                                   IFileService fileService,
-                                  INotificationService notificationService)
+                                  INotificationService notificationService,
+                                  IDistributedCache distributedCache)
         {
             _competitionRepo = competitionRepo;
             _memberRepo = memberRepo;
@@ -102,6 +113,7 @@ namespace UniCEC.Business.Services.CompetitionSvc
             _seedsWalletService = seedsWalletService;
             _universityRepo = universityRepo;
             _notificationService = notificationService;
+            _distributedCache = distributedCache;
         }
 
         private async Task<string> GetUrlImageClub(string imageUrl, int clubId)
@@ -375,52 +387,52 @@ namespace UniCEC.Business.Services.CompetitionSvc
         }
 
 
-        public async Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorize(CompetitionUnAuthorizeRequestModel request)
-        {
-            try
-            {
-                List<CompetitionStatus> listCompetitionStatus = new List<CompetitionStatus>();
-                listCompetitionStatus.Add(CompetitionStatus.Register); // register
-                listCompetitionStatus.Add(CompetitionStatus.Publish); // publish
+        //public async Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorize(CompetitionUnAuthorizeRequestModel request)
+        //{
+        //    try
+        //    {
+        //        List<CompetitionStatus> listCompetitionStatus = new List<CompetitionStatus>();
+        //        listCompetitionStatus.Add(CompetitionStatus.Register); // register
+        //        listCompetitionStatus.Add(CompetitionStatus.Publish); // publish
 
-                PagingResult<ViewCompetition> result = await _competitionRepo.GetCompOrEveUnAuthorize(request, listCompetitionStatus);
-                if (result == null) throw new NullReferenceException();
-                ////Không trả hình ảnh khi kh có giá trị entities
-                //if (!request.getEntities.HasValue)
-                //{
-                foreach (ViewCompetition item in result.Items)
-                {
+        //        PagingResult<ViewCompetition> result = await _competitionRepo.GetCompOrEveUnAuthorize(request, listCompetitionStatus);
+        //        if (result == null) throw new NullReferenceException();
+        //        ////Không trả hình ảnh khi kh có giá trị entities
+        //        //if (!request.getEntities.HasValue)
+        //        //{
+        //        foreach (ViewCompetition item in result.Items)
+        //        {
 
-                    //Add image club
-                    foreach (ViewClubInComp viewClub in item.ClubInCompetition)
-                    {
-                        viewClub.Image = await GetUrlImageClub(viewClub.Image, viewClub.ClubId);
-                    }
+        //            //Add image club
+        //            foreach (ViewClubInComp viewClub in item.ClubInCompetition)
+        //            {
+        //                viewClub.Image = await GetUrlImageClub(viewClub.Image, viewClub.ClubId);
+        //            }
 
-                    //List Competition Entity
-                    //List<ViewCompetitionEntity> ListView_CompetitionEntities = new List<ViewCompetitionEntity>();
+        //            //List Competition Entity
+        //            //List<ViewCompetitionEntity> ListView_CompetitionEntities = new List<ViewCompetitionEntity>();
 
-                    List<ViewCompetitionEntity> competitionEntities = await _competitionEntityRepo.GetCompetitionEntities(item.Id);
+        //            List<ViewCompetitionEntity> competitionEntities = await _competitionEntityRepo.GetCompetitionEntities(item.Id);
 
-                    if (competitionEntities != null)
-                    {
-                        foreach (var competitionEntity in competitionEntities)
-                        {
-                            competitionEntity.ImageUrl = await GetUrlImageCompEntity(competitionEntity.ImageUrl, competitionEntity.Id);
-                            //_fileService.GetUrlFromFilenameAsync(competitionEntity.ImageUrl) ?? "";
-                        }
-                        item.CompetitionEntities = competitionEntities;
-                    }
-                }
+        //            if (competitionEntities != null)
+        //            {
+        //                foreach (var competitionEntity in competitionEntities)
+        //                {
+        //                    competitionEntity.ImageUrl = await GetUrlImageCompEntity(competitionEntity.ImageUrl, competitionEntity.Id);
+        //                    //_fileService.GetUrlFromFilenameAsync(competitionEntity.ImageUrl) ?? "";
+        //                }
+        //                item.CompetitionEntities = competitionEntities;
+        //            }
+        //        }
 
-                return result;
+        //        return result;
 
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<PagingResult<ViewCompetition>> GetCompetitionByAdminUni(AdminUniGetCompetitionRequestModel request, string token)
         {
@@ -1189,7 +1201,7 @@ namespace UniCEC.Business.Services.CompetitionSvc
                 //State Start - OnGoing
                 //Update Date
                 if (comp.Status == CompetitionStatus.Start || comp.Status == CompetitionStatus.OnGoing)
-                {             
+                {
                     //Xem đã đúng form chưa 
                     bool formDate = CheckDate(localTime, comp.StartTimeRegister, comp.EndTimeRegister, comp.StartTime, model.EndTime.Value, true);
 
@@ -1201,7 +1213,7 @@ namespace UniCEC.Business.Services.CompetitionSvc
                     comp.EndTime = (DateTime)((model.EndTime.HasValue) ? model.EndTime : comp.EndTime);
                     await _competitionRepo.Update();
                     return true;
-                  
+
                 }
                 return false;
             }
@@ -2616,11 +2628,12 @@ namespace UniCEC.Business.Services.CompetitionSvc
                 int result2 = DateTime.Compare(localTime, EndTimeRegister); // < 0 sooner
                 if (result2 < 0)
                 {
-                   round1 = true;
+                    round1 = true;
                 }
             }
 
-            if (round1) {
+            if (round1)
+            {
                 //1 hours or more
                 TimeSpan cm1 = EndTimeRegister - StartTimeRegister;
                 if ((TimeSpan.Compare(cm1, TimeSpan.FromHours(1)) >= 0))
@@ -2628,7 +2641,7 @@ namespace UniCEC.Business.Services.CompetitionSvc
                     result = true;
                 }
             }
-                return result;
+            return result;
         }
 
         //Check state UpComing
@@ -3219,6 +3232,111 @@ namespace UniCEC.Business.Services.CompetitionSvc
         //    return checkDate;
         //}
 
+        public async Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorize(CompetitionUnAuthorizeRequestModel request)
+        {
+            try
+            {
+                PagingResult<ViewCompetition> result = null;
+                var cacheKey = "competitionList";
+                string serializedCompetitionList;
+                List<CompetitionStatus> listCompetitionStatus = new List<CompetitionStatus>();
+                listCompetitionStatus.Add(CompetitionStatus.Register); // register
+                listCompetitionStatus.Add(CompetitionStatus.Publish); // publish
+                                                                      //var competitionList = new List<Competition>();
 
+                var redisCompetitionList = await _distributedCache.GetAsync(cacheKey);
+                //if (result == null) throw new NullReferenceException();
+                ////Không trả hình ảnh khi kh có giá trị entities
+                //if (!request.getEntities.HasValue)
+                //{
+                if (redisCompetitionList != null)
+                {
+                    serializedCompetitionList = Encoding.UTF8.GetString(redisCompetitionList);
+                    result = JsonConvert.DeserializeObject<PagingResult<ViewCompetition>>(serializedCompetitionList);
+                }
+                else
+                {
+                    result = await _competitionRepo.GetCompOrEveUnAuthorize(request, listCompetitionStatus);
+                    serializedCompetitionList = JsonConvert.SerializeObject(result);
+                    redisCompetitionList = Encoding.UTF8.GetBytes(serializedCompetitionList);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                    await _distributedCache.SetAsync(cacheKey, redisCompetitionList, options);
+                }
+
+                foreach (ViewCompetition item in result.Items)
+                {
+
+                    //Add image club
+                    foreach (ViewClubInComp viewClub in item.ClubInCompetition)
+                    {
+                        viewClub.Image = await GetUrlImageClub(viewClub.Image, viewClub.ClubId);
+                    }
+
+                    //List Competition Entity
+                    //List<ViewCompetitionEntity> ListView_CompetitionEntities = new List<ViewCompetitionEntity>();
+
+                    List<ViewCompetitionEntity> competitionEntities = await _competitionEntityRepo.GetCompetitionEntities(item.Id);
+
+                    if (competitionEntities != null)
+                    {
+                        foreach (var competitionEntity in competitionEntities)
+                        {
+                            competitionEntity.ImageUrl = await GetUrlImageCompEntity(competitionEntity.ImageUrl, competitionEntity.Id);
+                            //_fileService.GetUrlFromFilenameAsync(competitionEntity.ImageUrl) ?? "";
+                        }
+                        item.CompetitionEntities = competitionEntities;
+                    }
+                }
+                return result;
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        static bool AcquireLock(string key, string value, TimeSpan expiration)
+        {
+            bool flag = false;
+
+            try
+            {
+                flag = redis.GetDatabase().StringSet(key, value, expiration, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Acquire lock fail...{ex.Message}");
+                flag = true;
+            }
+
+            return flag;
+        }
+
+        static bool ReleaseLock(string key, string value)
+        {
+            string lua_script = @"if (redis.call('GET', KEYS[1]) == ARGV[1]) then 
+                redis.call('DEL', KEYS[1])  
+                    return true  
+                else  
+                    return false  
+                end  
+                    ";
+
+            try
+            {
+                var res = redis.GetDatabase().ScriptEvaluate(lua_script,
+                                                           new RedisKey[] { key },
+                                                           new RedisValue[] { value });
+                return (bool)res;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ReleaseLock lock fail...{ex.Message}");
+                return false;
+            }
+        }
     }
 }

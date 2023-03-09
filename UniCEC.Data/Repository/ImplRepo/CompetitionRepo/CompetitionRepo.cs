@@ -23,6 +23,11 @@ namespace UniCEC.Data.Repository.ImplRepo.CompetitionRepo
 
         }
 
+        public async Task<List<Competition>> GetAll()
+        {
+            return await context.Competitions.Include(cp => cp.CompetitionType).ToListAsync();
+        }
+
         public async Task<bool> CheckExistCode(string code)
         {
             bool check = false;
@@ -1275,5 +1280,75 @@ namespace UniCEC.Data.Repository.ImplRepo.CompetitionRepo
             return await context.Competitions.FirstOrDefaultAsync(competition => competition.Id.Equals(competitionId)
                                                                                     && competition.Status.Equals(status)) != null;
         }
-    }
+
+        public async Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorizeRedis(CompetitionUnAuthorizeRequestModel request, List<CompetitionStatus> listCompetitionStatus)
+        {
+            // new part
+            var query = from c in context.Competitions
+                        join ct in context.CompetitionTypes on c.CompetitionTypeId equals ct.Id
+                        where c.Scope.Equals(CompetitionScopeStatus.InterUniversity)
+                        select new { c, ct };
+
+            if (request.MostView.Equals(true)) query = query.OrderByDescending(selector => selector.c.View);
+
+            if (request.NearlyDate.Equals(true))
+                query = query.Where(selector =>
+                    selector.c.CreateTime < new LocalTime().GetLocalTime().DateTime).OrderByDescending(selector => selector.c.CreateTime);
+
+
+            if (listCompetitionStatus.Count > 0) query = query.Where(selector => listCompetitionStatus.Contains(selector.c.Status));
+
+            if (request.Sponsor.HasValue) query = query.Where(selector => selector.c.IsSponsor.Equals(request.Sponsor.Value));
+
+            if (!string.IsNullOrEmpty(request.Name)) query = query.Where(selector => selector.c.Name.ToLower().Contains(request.Name.ToLower()));
+
+            int totalCount = query.Count();
+
+            //
+            List<ViewCompetition> competitions = await query.Skip((request.CurrentPage - 1) * request.PageSize).Take(request.PageSize)
+                                                    .Select(selector => new ViewCompetition()
+                                                    {
+                                                        Id = selector.c.Id,
+                                                        Name = selector.c.Name,
+                                                        CompetitionTypeId = selector.c.CompetitionTypeId,
+                                                        CompetitionTypeName = selector.ct.TypeName,
+                                                        Scope = selector.c.Scope,
+                                                        Status = selector.c.Status,
+                                                        View = selector.c.View,
+                                                        CreateTime = selector.c.CreateTime,
+                                                        StartTime = selector.c.StartTime,
+                                                        IsSponsor = selector.c.IsSponsor,
+                                                        UniversityId = selector.c.UniversityId,
+                                                        IsEvent = (selector.c.NumberOfTeam == 0) ? true : false
+                                                    }).ToListAsync();
+
+            foreach (var competition in competitions)
+            {
+                competition.ClubInCompetition = await (from cic in context.CompetitionInClubs
+                                                       join club in context.Clubs on cic.ClubId equals club.Id
+                                                       where cic.CompetitionId.Equals(competition.Id)
+                                                       select new ViewClubInComp()
+                                                       {
+                                                           Id = cic.Id,
+                                                           ClubId = cic.ClubId,
+                                                           Fanpage = club.ClubFanpage,
+                                                           Image = club.Image,
+                                                           IsOwner = cic.IsOwner,
+                                                           Name = club.Name
+                                                       }).ToListAsync();
+
+                competition.MajorInCompetition = await (from cim in context.CompetitionInMajors
+                                                        join m in context.Majors on cim.MajorId equals m.Id
+                                                        where cim.CompetitionId.Equals(competition.Id)
+                                                        select new ViewMajorInComp()
+                                                        {
+                                                            Id = cim.Id,
+                                                            MajorId = cim.MajorId,
+                                                            Name = m.Name
+                                                        }).ToListAsync();
+            }
+
+            return (competitions.Count != 0) ? new PagingResult<ViewCompetition>(competitions, totalCount, request.CurrentPage, request.PageSize) : null;
+        }
+        }
 }
