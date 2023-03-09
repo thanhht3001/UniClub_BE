@@ -256,6 +256,11 @@ namespace UniCEC.API
                 });
 
             });
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "redis-12075.c252.ap-southeast-1-1.ec2.cloud.redislabs.com:12075,password=SJQhDtg2pAHPguJwpxll2BbiLioTiyfG";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

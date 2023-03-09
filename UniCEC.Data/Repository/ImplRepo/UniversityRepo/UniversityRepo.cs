@@ -132,7 +132,7 @@ namespace UniCEC.Data.Repository.ImplRepo.UniversityRepo
 
             var query = from University u in context.Universities
                         select u;
-
+           
             //Status
             if (request.Status.HasValue) query = query.Where(u => u.Status == request.Status.Value);
 
@@ -146,7 +146,7 @@ namespace UniCEC.Data.Repository.ImplRepo.UniversityRepo
             count = query.Count();
 
             List<University> listUni = await query.Include(c => c.City).Skip((request.CurrentPage - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
-            
+
             //return view
             listUni.ForEach(u =>
             {

@@ -15,6 +15,7 @@ namespace UniCEC.Data.Repository.ImplRepo.CompetitionRepo
 
         //
         public Task<bool> CheckClubBelongToUniversity(int clubId, int universityId);
+        public Task<List<Competition>> GetAll();
         
         //Get EVENT or COMPETITION by conditions
         public Task<PagingResult<ViewCompetition>> GetCompOrEve(CompetitionRequestModel request, int universityId);
@@ -30,6 +31,7 @@ namespace UniCEC.Data.Repository.ImplRepo.CompetitionRepo
 
         //Get Competition - UnAuthorize
         public Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorize(CompetitionUnAuthorizeRequestModel request,List<CompetitionStatus> listCompetitionStatus);
+        public Task<PagingResult<ViewCompetition>> GetCompOrEveUnAuthorizeRedis(CompetitionUnAuthorizeRequestModel request, List<CompetitionStatus> listCompetitionStatus);
 
         //
         public Task<PagingResult<ViewCompetition>> GetCompsOrEvesStudentJoin(GetStudentJoinCompOrEve request, int userId);

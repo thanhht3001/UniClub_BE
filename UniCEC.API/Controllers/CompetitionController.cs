@@ -866,6 +866,27 @@ namespace UniCEC.API.Controllers
             }
         }
 
-
+        //[HttpGet("redis")]
+        //[SwaggerOperation(Summary = "Get EVENT or COMPETITION by Condition - UnAuthorize And Use Redis")]
+        //public async Task<IActionResult> GetCompOrEveUnAuthorizeRedis([FromQuery] CompetitionUnAuthorizeRequestModel model)
+        //{
+        //    try
+        //    {
+        //        PagingResult<ViewCompetition> result = await _competitionService.GetCompOrEveUnAuthorizeRedis(model);
+        //        return Ok(result);
+        //    }
+        //    catch (NullReferenceException)
+        //    {
+        //        return Ok(new List<object>());
+        //    }
+        //    catch (ArgumentNullException ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //    catch (SqlException)
+        //    {
+        //        return StatusCode(500, "Internal server exception");
+        //    }
+        //}
     }
 }
